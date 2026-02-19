@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Business Stock Tracker</title>
+  <title>Stock Tracker</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
-    video { border: 1px solid black; width: 300px; height: 200px; }
+    video { border: 1px solid black; width: 300px; height: 200px; display: block; margin-bottom: 10px; }
     table { margin-top: 20px; border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid black; padding: 8px; text-align: center; }
     input { width: 80px; padding: 5px; margin-right: 10px; }
-    button { padding: 5px 10px; margin-right: 5px; }
+    button { padding: 5px 10px; margin-right: 5px; margin-top: 5px; }
   </style>
-  <!-- ZXing Barcode Library -->
+  <!-- ZXing Library for barcode scanning -->
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/dist/index.min.js"></script>
 </head>
 <body>
@@ -19,6 +19,7 @@
 <h2>Business Stock Tracker</h2>
 
 <button id="startScanBtn">Start Scanner</button>
+
 <video id="video"></video>
 <p>Scanned Code: <strong id="scannedDisplay">None</strong></p>
 
@@ -39,24 +40,25 @@
 <script>
 const codeReader = new ZXing.BrowserBarcodeReader();
 let scannedCode = "";
+let stock = [];
 let scanningLocked = false;
 
+// Start scanner after button tap
 document.getElementById("startScanBtn").addEventListener("click", () => {
   codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
     if (result && !scanningLocked) {
       scanningLocked = true;
       scannedCode = result.text;
       document.getElementById("scannedDisplay").innerText = scannedCode;
-      // focus quantity input
       document.getElementById("quantity").focus();
     }
   }).catch(err => {
     console.error("Camera access failed:", err);
-    alert("Cannot access camera. Make sure you open this page in Safari and tap 'Start Scanner'.");
+    alert("Cannot access camera. Make sure you are using Safari on iPhone and tapped Start Scanner.");
   });
 });
 
-// Add item to stock list
+// Add item to table
 document.getElementById("addItemBtn").addEventListener("click", () => {
   const qty = document.getElementById("quantity").value;
   if (!scannedCode || !qty) {
@@ -71,14 +73,13 @@ document.getElementById("addItemBtn").addEventListener("click", () => {
   row.insertCell(0).innerText = scannedCode;
   row.insertCell(1).innerText = qty;
 
-  // Reset for next scan
   scannedCode = "";
   scanningLocked = false;
   document.getElementById("scannedDisplay").innerText = "None";
   document.getElementById("quantity").value = "";
 });
 
-// Export as CSV
+// Export CSV
 document.getElementById("exportBtn").addEventListener("click", () => {
   let csv = "Barcode,Quantity\n";
   stock.forEach(item => {
@@ -91,11 +92,7 @@ document.getElementById("exportBtn").addEventListener("click", () => {
   link.download = "stock-report.csv";
   link.click();
 });
-
-// Start scanning automatically
-startScanner();
 </script>
 
 </body>
 </html>
-

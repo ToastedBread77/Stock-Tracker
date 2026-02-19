@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Business Stock Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    video { border: 1px solid black; width: 300px; height: 200px; }
+    table { margin-top: 20px; border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid black; padding: 8px; text-align: center; }
+    input { width: 80px; padding: 5px; margin-right: 10px; }
+    button { padding: 5px 10px; margin-right: 5px; }
+  </style>
+  <!-- ZXing Barcode Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/dist/index.min.js"></script>
+</head>
+<body>
+
+<h2>Business Stock Tracker</h2>
+
+<video id="video"></video><br>
+<p>Scanned Code: <strong id="scannedDisplay">None</strong></p>
+
+<input type="number" id="quantity" placeholder="Quantity" />
+<button id="addItemBtn">Add Item</button>
+<button id="exportBtn">Export to Excel</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Barcode</th>
+      <th>Quantity</th>
+    </tr>
+  </thead>
+  <tbody id="stockList"></tbody>
+</table>
+
+<script>
+const codeReader = new ZXing.BrowserBarcodeReader();
+let scannedCode = "";
+let stock = [];
+let scanningLocked = false;
+
+// Start scanning immediately
+function startScanner() {
+  codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+    if (result && !scanningLocked) {
+      scanningLocked = true;
+      scannedCode = result.text;
+      document.getElementById("scannedDisplay").innerText = scannedCode;
+      document.getElementById("quantity").focus();
+    }
+  }).catch(err => {
+    console.error("Camera access failed:", err);
+    alert("Cannot access camera. Make sure your browser supports HTTPS camera access.");
+  });
+}
+
+// Add item to stock list
+document.getElementById("addItemBtn").addEventListener("click", () => {
+  const qty = document.getElementById("quantity").value;
+  if (!scannedCode || !qty) {
+    alert("Scan a barcode and enter quantity first!");
+    return;
+  }
+
+  stock.push({ barcode: scannedCode, quantity: qty });
+
+  const table = document.getElementById("stockList");
+  const row = table.insertRow();
+  row.insertCell(0).innerText = scannedCode;
+  row.insertCell(1).innerText = qty;
+
+  // Reset for next scan
+  scannedCode = "";
+  scanningLocked = false;
+  document.getElementById("scannedDisplay").innerText = "None";
+  document.getElementById("quantity").value = "";
+});
+
+// Export as CSV
+document.getElementById("exportBtn").addEventListener("click", () => {
+  let csv = "Barcode,Quantity\n";
+  stock.forEach(item => {
+    csv += item.barcode + "," + item.quantity + "\n";
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "stock-report.csv";
+  link.click();
+});
+
+// Start scanning automatically
+startScanner();
+</script>
+
+</body>
+</html>

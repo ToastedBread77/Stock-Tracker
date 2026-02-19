@@ -18,7 +18,8 @@
 
 <h2>Business Stock Tracker</h2>
 
-<video id="video"></video><br>
+<button id="startScanBtn">Start Scanner</button>
+<video id="video"></video>
 <p>Scanned Code: <strong id="scannedDisplay">None</strong></p>
 
 <input type="number" id="quantity" placeholder="Quantity" />
@@ -38,23 +39,22 @@
 <script>
 const codeReader = new ZXing.BrowserBarcodeReader();
 let scannedCode = "";
-let stock = [];
 let scanningLocked = false;
 
-// Start scanning immediately
-function startScanner() {
+document.getElementById("startScanBtn").addEventListener("click", () => {
   codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
     if (result && !scanningLocked) {
       scanningLocked = true;
       scannedCode = result.text;
       document.getElementById("scannedDisplay").innerText = scannedCode;
+      // focus quantity input
       document.getElementById("quantity").focus();
     }
   }).catch(err => {
     console.error("Camera access failed:", err);
-    alert("Cannot access camera. Make sure your browser supports HTTPS camera access.");
+    alert("Cannot access camera. Make sure you open this page in Safari and tap 'Start Scanner'.");
   });
-}
+});
 
 // Add item to stock list
 document.getElementById("addItemBtn").addEventListener("click", () => {
@@ -98,3 +98,4 @@ startScanner();
 
 </body>
 </html>
+
